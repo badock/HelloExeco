@@ -1,0 +1,365 @@
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+          integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"
+            integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
+            crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="css/codemirror.css">
+    <link rel="stylesheet" href="css/solarized.css">
+    <!--<link rel=stylesheet href="http://codemirror.net/doc/docs.css">-->
+    <script src="js/codemirror.js"></script>
+    <script src="js/xml.js"></script>
+    <script src="js/javascript.js"></script>
+    <script src="js/yaml.js"></script>
+    <script src="js/css.js"></script>
+    <script src="js/python.js"></script>
+    <script src="js/htmlmixed.js"></script>
+    <script src="js/matchbrackets.js"></script>
+    <script src="js/shell.js"></script>
+
+    <link rel="stylesheet" href="css/course.css">
+</head>
+<body>
+
+<div id="container">
+
+    <div class="row">
+        <div class="col">
+        </div>
+        <div class="col-10 main-content">
+
+            <h1>Practical session</h1>
+            <p>This session will provide a practical illustration of the experimental workflow introduced during the
+                presentation. It will cover the steps of the experimental workflow, namely:</p>
+            <ul>
+                <li>Account creation and first steps</li>
+                <li>Resource allocation</li>
+                <li>Deployment of an experimental environment</li>
+                <li>Launching an experiment</li>
+                <li>Gathering results</li>
+            </ul>
+
+            <p>During this session, users will be asked to get a resource allocation, and then they will develop a
+                python script that will interact with Grid'5000 API to:</p>
+            <ul>
+                <li>Find information about a resource allocations, whose ID would be given as an argument</li>
+                <li>List the nodes of the reservation</li>
+                <li>Deploy an environment on them</li>
+                <li>Upload a local bash script</li>
+                <li>Execute the local bash script</li>
+                <li>Collect its results</li>
+            </ul>
+
+            <h3> I- Account creation and first steps</h3>
+
+            <h5>A- Creating a G5K account</h5>
+
+            <p>Firstly, create a Grid'5000 account by visiting this link : <a
+                    href="https://www.grid5000.fr/mediawiki/index.php/Grid5000:Get_an_account">Get_an_account</a>.</p>
+
+            <h5>B- Generating a SSH key pair</h5>
+
+            <p>Run the following code in a terminal to generate a SSH key : </p>
+            <textarea class="code_no_line_numbers">
+ssh-keygen -t rsa -b 4096 -C "your_email@example.com"</textarea>
+
+            <p>display the content of the generated public key : </p>
+            <textarea class="code_no_line_numbers">
+cat ~/.ssh/id_rsa.pub</textarea>
+
+            <p>Now we will add some configuration to ssh to ease connection to Grid'5000. Add the following lines to the <span
+                    class="badge badge-pill badge-primary">.ssh/config</span> file located in your home folder : </p>
+            <p>(username=<input
+                    id="user_name_text_input" type="text" placeholder="Enter your username"/>)</p>
+            <textarea id="ssh_config_text_input" class="code_no_line_numbers">
+Host *.g5k
+	User __username__
+	ProxyCommand ssh __username__@access-north.grid5000.fr "nc -q 0 `basename %h .g5k` %p"
+	StrictHostKeyChecking no</textarea>
+
+            <p>and upload it in the Grid'5000 <a href="https://api.grid5000.fr/stable/users/#myaccount">user management
+                system</a></p>
+
+            <h3> II- Resource allocation </h3>
+
+            <p>First let see what are the resources that are available. It can be done in two ways:</p>
+            <ul>
+                <li>Checking the <a href="https://www.grid5000.fr/mediawiki/index.php/Status#Drawgantt">gantt charts</a>
+                </li>
+                <li>Using funk</li>
+            </ul>
+
+            <p>We will now make a reservation of two nodes of the econome cluster, during one hour. To do so, we will
+                use <code>funk</code> as follow :</p>
+            <textarea class="code_no_line_numbers">
+funk -m free -r econome:2 -w 1:00:00 -o "-t deploy"</textarea>
+
+            <p>Now connect to nantes:</p>
+            <textarea class="code_no_line_numbers">
+ssh nantes.g5k</textarea>
+
+            <h3> III- Deployment of an experimental environment </h3>
+
+            <p>Wait until your reservation is running. Once it is the case, connect to a frontend :</p>
+            <textarea class="code_no_line_numbers">
+ssh nantes.g5k</textarea>
+
+            <p>And connect to the OAR job :</p>
+            <p>(oar_job_id=<input id="oarjob_id_text_input" type="text" placeholder="enter your oar_job id"/>)</p>
+            <textarea id="oarjob_connect_text_area" class="code_no_line_numbers">
+oarsub -C __job_id__</textarea>
+
+            <p>And run the <code>kadeploy</code> command to deploy an operating system (debian) on the nodes you got with the reservation :</p>
+            <textarea class="code_no_line_numbers">kadeploy3 -f $OAR_NODE_FILE -e jessie-x64-min -k</textarea>
+
+            <p>Now, wait until the deployment is finished (it takes approximately 2 minutes).</p>
+
+            <h3> IV- Launching an experiment </h3>
+
+            <p>As the nodes of the reservation are deployed, we will now run some software on them.</p>
+
+            <p>Create a local bash script <span class="badge badge-pill badge-primary">launch_experiment.sh</span> that contains the following instructions :</p>
+            <textarea class="code_no_line_numbers">#!/usb/bin/env bash
+
+echo $(hostname) > output.txt
+
+exit 0</textarea>
+
+            <p>and upload it on nodes of the reservation :</p>
+            <textarea class="code_no_line_numbers">while read -r HOST
+do
+    scp launch_experiment.sh root@$HOST:launch_experiment.sh
+done < $(uniq $OAR_NODE_FILE)</textarea>
+
+            <p>and run the script on nodes of the reservation :</p>
+            <textarea class="code_no_line_numbers">while read -r HOST
+do
+    ssh root@$HOST launch_experiment.sh < /dev/null
+done < $(uniq $OAR_NODE_FILE)</textarea>
+
+
+            <h3> V- Gathering results </h3>
+
+            <textarea class="code_no_line_numbers">mkdir results
+
+while read -r HOST
+do
+    scp root@$HOST:output.txt results/$HOST_output.txt
+done < $(uniq $OAR_NODE_FILE)
+
+tar -zcvf results.tgz results</textarea>
+
+            <h3> VI- Automatization using <i>Execo</i></h3>
+
+            <p>It is possible to automate the execution of these steps by python and the <a href="http://execo.gforge.inria.fr/doc/latest-stable/">Execo</a> library.</p>
+
+            <p>First install python and PIP (a dependency manager for Python). Once it is done, install Execo :</p>
+
+            <p>Once Execo is installed, create a <span></span> file in your home folder, with the following content :</p>
+<p>(username=<input
+                    id="user_name_text_execo_input" type="text" placeholder="Enter your username"/>)</p>
+
+            <textarea id="execo_configuration_code" class="code_python_no_line_numbers">import re
+
+default_connection_params = {
+    'host_rewrite_func': lambda host: re.sub("\.grid5000\.fr$", ".g5k", host),
+    'taktuk_gateway': 'g5k'
+}
+
+default_frontend_connection_params = {
+    'host_rewrite_func': lambda host: host + ".g5k"
+    }
+
+g5k_configuration = {
+    'api_username': 'jpastor',
+    }</textarea>
+
+
+            <p>And try to run the following script :</p>
+            <p>(oar_job_id=<input id="oarjob_id_text_python_input" type="text" placeholder="enter your oar_job id"/>)</p>
+            <textarea id="execo_example_code" class="code_python">
+import execo
+import execo_g5k
+from execo import *
+from execo_g5k import *
+from execo_engine import *
+import time
+import os
+
+job_id = 67565
+site = "nantes"
+env_name = "jessie-x64-min"
+
+deploy = True
+
+print("======= View reservations information =======")
+infos = get_oar_job_info(job_id, site)
+for info in infos:
+    print(" * %s --> %s" % (info, infos[info]))
+
+print("======= List nodes =======")
+nodes = get_oar_job_nodes(job_id, site)
+for node in nodes:
+    print(" * "+node.address)
+
+if deploy:
+    print("======= Deploy an environment on nodes =======")
+    deployment = Deployment(hosts=nodes, env_name=env_name)
+    deployed_hosts = deploy(deployment, num_tries=3)
+    print(deployed_hosts)
+
+print("======= Upload a local script on nodes =======")
+conn_params = {'user': 'root'}
+cmd_runnable = Put(nodes,
+                   ["script/launch_experiment.sh"],
+                   remote_location="launch_experiment.sh",
+                   connection_params=conn_params)
+cmd_runnable.run()
+print("OK")
+
+print("======= Running a script on nodes =======")
+cmd = "bash launch_experiment.sh"
+cmd_runnable = Remote(cmd, nodes, conn_params)
+cmd_runnable.run()
+print("OK")
+
+print("======= Download the result of the script from nodes =======")
+result_directory = "results"
+if not os.path.exists(result_directory):
+    os.makedirs(result_directory)
+conn_params = {'user': 'root'}
+
+for node in nodes:
+    local_location = result_directory+"/"+node.address.replace(".", "_").replace("-", "_")
+    cmd_runnable = Get(node,
+                       ["output.txt"],
+                       local_location=local_location,
+                       connection_params=conn_params)
+    cmd_runnable.run()
+print("OK")</textarea>
+
+            <h3>VII - Conclusion</h3>
+
+            <img style="width: 100%;" src="https://s-media-cache-ak0.pinimg.com/originals/a0/14/c6/a014c6ba289500ece032cb67cbbdc2ab.jpg"></img>
+
+        </div>
+        <div class="col">
+        </div>
+    </div>
+</div>
+
+<script>
+    let tags_to_editor_map = {};
+
+    $.map($(".code"), function (code_tag) {
+        var editor = CodeMirror.fromTextArea(code_tag, {
+            mode: {
+                name: "shell",
+                version: 3,
+                singleLineStringErrors: false
+            },
+            lineNumbers: true,
+            indentUnit: 4,
+            matchBrackets: true,
+            readOnly: true,
+            theme: "solarized dark"
+        });
+        if (code_tag.id != "") {
+            tags_to_editor_map[code_tag.id] = editor
+        }
+    });
+
+    $.map($(".code_python"), function (code_tag) {
+        var editor = CodeMirror.fromTextArea(code_tag, {
+            mode: {
+                name: "python",
+                version: 3,
+                singleLineStringErrors: false
+            },
+            lineNumbers: true,
+            indentUnit: 4,
+            matchBrackets: true,
+            readOnly: true,
+            theme: "solarized dark"
+        });
+        if (code_tag.id != "") {
+            tags_to_editor_map[code_tag.id] = editor
+        }
+    });
+
+    $.map($(".code_python_no_line_numbers"), function (code_tag) {
+        var editor = CodeMirror.fromTextArea(code_tag, {
+            mode: {
+                name: "python",
+                version: 3,
+                singleLineStringErrors: false
+            },
+            lineNumbers: false,
+            indentUnit: 4,
+            matchBrackets: true,
+            readOnly: true,
+            theme: "solarized dark"
+        });
+        if (code_tag.id != "") {
+            tags_to_editor_map[code_tag.id] = editor
+        }
+    });
+
+    $.map($(".code_no_line_numbers"), function (code_tag) {
+        var editor = CodeMirror.fromTextArea(code_tag, {
+            mode: {
+                name: "shell",
+                version: 3,
+                singleLineStringErrors: false
+            },
+            lineNumbers: false,
+            indentUnit: 4,
+            matchBrackets: true,
+            readOnly: true,
+            theme: "solarized dark"
+        });
+        if (code_tag.id != "") {
+            tags_to_editor_map[code_tag.id] = editor
+        }
+    });
+
+    $("#user_name_text_input").bind('input propertychange', function() {
+        let username = $("#user_name_text_input").val();
+        let ssh_config_template = `Host *.g5k
+	User __username__
+	ProxyCommand ssh __username__@access-north.grid5000.fr "nc -q 0 \`basename %h .g5k\` %p"
+	StrictHostKeyChecking no`;
+        let ssh_config = ssh_config_template.replace(/__username__/g, username);
+        tags_to_editor_map["ssh_config_text_input"].setValue(ssh_config);
+    });
+
+    $("#oarjob_id_text_input").bind('input propertychange', function() {
+        let oarjob_id = $("#oarjob_id_text_input").val();
+        let ssh_config_template = `oarsub -C __job_id__`;
+        let ssh_config = ssh_config_template.replace(/__job_id__/g, oarjob_id);
+        tags_to_editor_map["oarjob_connect_text_area"].setValue(ssh_config);
+    });
+
+    $("#oarjob_id_text_python_input").bind('input propertychange', function() {
+        let oarjob_id = $("#oarjob_id_text_python_input").val();
+        let ssh_config_template = tags_to_editor_map["execo_example_code"].getValue();
+        let ssh_config = ssh_config_template.replace(/job_id = .*/g, "job_id = "+oarjob_id);
+        tags_to_editor_map["execo_example_code"].setValue(ssh_config);
+    });
+
+    $("#user_name_text_execo_input").bind('input propertychange', function() {
+        let username = $("#user_name_text_execo_input").val();
+        let ssh_config_template = tags_to_editor_map["execo_configuration_code"].getValue();
+        let ssh_config = ssh_config_template.replace(/'api_username': .*/g, "'api_username': '"+username+"'");
+        tags_to_editor_map["execo_configuration_code"].setValue(ssh_config);
+    });
+
+
+
+</script>
+</body>
+</html>

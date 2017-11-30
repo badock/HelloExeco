@@ -151,7 +151,7 @@ done < uniq_hosts.txt</textarea>
 uniq $OAR_NODE_FILE > uniq_hosts.txt
 while read -r HOST
 do
-    scp root@$HOST:output.txt results/$HOST_output.txt
+    scp root@$HOST:output.txt results/${HOST}_output.txt
 done < uniq_hosts.txt
 
 tar -zcvf results.tgz results</textarea>

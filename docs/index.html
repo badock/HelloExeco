@@ -130,26 +130,29 @@ echo $(hostname) > output.txt
 exit 0</textarea>
 
             <p>and upload it on nodes of the reservation :</p>
-            <textarea class="code_no_line_numbers">while read -r HOST
+            <textarea class="code_no_line_numbers">uniq $OAR_NODE_FILE > uniq_hosts.txt
+while read -r HOST
 do
     scp launch_experiment.sh root@$HOST:launch_experiment.sh
-done < $(uniq $OAR_NODE_FILE)</textarea>
+done < uniq_hosts.txt</textarea>
 
             <p>and run the script on nodes of the reservation :</p>
-            <textarea class="code_no_line_numbers">while read -r HOST
+            <textarea class="code_no_line_numbers">
+uniq $OAR_NODE_FILE > uniq_hosts.txt
+while read -r HOST
 do
     ssh root@$HOST launch_experiment.sh < /dev/null
-done < $(uniq $OAR_NODE_FILE)</textarea>
+done < uniq_hosts.txt</textarea>
 
 
             <h3> V- Gathering results </h3>
 
             <textarea class="code_no_line_numbers">mkdir results
-
+uniq $OAR_NODE_FILE > uniq_hosts.txt
 while read -r HOST
 do
     scp root@$HOST:output.txt results/$HOST_output.txt
-done < $(uniq $OAR_NODE_FILE)
+done < uniq_hosts.txt
 
 tar -zcvf results.tgz results</textarea>
 

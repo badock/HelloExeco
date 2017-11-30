@@ -141,7 +141,7 @@ done < uniq_hosts.txt</textarea>
 uniq $OAR_NODE_FILE > uniq_hosts.txt
 while read -r HOST
 do
-    ssh root@$HOST launch_experiment.sh < /dev/null
+    ssh root@$HOST "bash launch_experiment.sh" < /dev/null
 done < uniq_hosts.txt</textarea>
 
 

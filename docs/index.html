@@ -130,26 +130,29 @@ echo $(hostname) > output.txt
 exit 0</textarea>
 
             <p>and upload it on nodes of the reservation :</p>
-            <textarea class="code_no_line_numbers">while read -r HOST
+            <textarea class="code_no_line_numbers">uniq $OAR_NODE_FILE > uniq_hosts.txt
+while read -r HOST
 do
     scp launch_experiment.sh root@$HOST:launch_experiment.sh
-done < $(uniq $OAR_NODE_FILE)</textarea>
+done < uniq_hosts.txt</textarea>
 
             <p>and run the script on nodes of the reservation :</p>
-            <textarea class="code_no_line_numbers">while read -r HOST
+            <textarea class="code_no_line_numbers">
+uniq $OAR_NODE_FILE > uniq_hosts.txt
+while read -r HOST
 do
-    ssh root@$HOST launch_experiment.sh < /dev/null
-done < $(uniq $OAR_NODE_FILE)</textarea>
+    ssh root@$HOST "bash launch_experiment.sh" < /dev/null
+done < uniq_hosts.txt</textarea>
 
 
             <h3> V- Gathering results </h3>
 
             <textarea class="code_no_line_numbers">mkdir results
-
+uniq $OAR_NODE_FILE > uniq_hosts.txt
 while read -r HOST
 do
-    scp root@$HOST:output.txt results/$HOST_output.txt
-done < $(uniq $OAR_NODE_FILE)
+    scp root@$HOST:output.txt results/${HOST}_output.txt
+done < uniq_hosts.txt
 
 tar -zcvf results.tgz results</textarea>
 
@@ -159,7 +162,8 @@ tar -zcvf results.tgz results</textarea>
 
             <p>First install python and PIP (a dependency manager for Python). Once it is done, install Execo :</p>
 
-            <p id="generate_execo_conf">Once Execo is installed, create a <span></span> file in your home folder, with the following content :</p>
+            <p id="generate_execo_conf">Once Execo is installed, create a <span class="badge badge-pill badge-primary">~/.execo.conf.py</span> file in your home folder, with the following content :</p>
+
 <p>(username=<input
                     id="user_name_text_execo_input" type="text" placeholder="Enter your username"/>)</p>
 
@@ -181,8 +185,7 @@ g5k_configuration = {
 
             <p>And try to run the following script :</p>
             <p>(oar_job_id=<input id="oarjob_id_text_python_input" type="text" placeholder="enter your oar_job id"/>)</p>
-            <textarea id="execo_example_code" class="code_python">
-import execo
+            <textarea id="execo_example_code" class="code_python">import execo
 import execo_g5k
 from execo import *
 from execo_g5k import *
@@ -190,11 +193,11 @@ from execo_engine import *
 import time
 import os
 
-job_id = 67565
+job_id = 67856
 site = "nantes"
 env_name = "jessie-x64-min"
 
-deploy = True
+do_deployement = True
 
 print("======= View reservations information =======")
 infos = get_oar_job_info(job_id, site)
@@ -206,7 +209,7 @@ nodes = get_oar_job_nodes(job_id, site)
 for node in nodes:
     print(" * "+node.address)
 
-if deploy:
+if do_deployement:
     print("======= Deploy an environment on nodes =======")
     deployment = Deployment(hosts=nodes, env_name=env_name)
     deployed_hosts = deploy(deployment, num_tries=3)

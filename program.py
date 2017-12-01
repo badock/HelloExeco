@@ -6,11 +6,11 @@ from execo_engine import *
 import time
 import os
 
-job_id = 67565
+job_id = 67856
 site = "nantes"
 env_name = "jessie-x64-min"
 
-deploy = True
+do_deployement = True
 
 print("======= View reservations information =======")
 infos = get_oar_job_info(job_id, site)
@@ -22,7 +22,7 @@ nodes = get_oar_job_nodes(job_id, site)
 for node in nodes:
     print(" * "+node.address)
 
-if deploy:
+if do_deployement:
     print("======= Deploy an environment on nodes =======")
     deployment = Deployment(hosts=nodes, env_name=env_name)
     deployed_hosts = deploy(deployment, num_tries=3)

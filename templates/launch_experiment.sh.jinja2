@@ -1,0 +1,13 @@
+#!/usb/bin/env bash
+
+cd HelloAkka
+{% if is_master %}
+mvn exec:java -Dexec.mainClass=distributed.Main -Dexec.args="server {{ node.address }} 1234" | tee $HOME/output.log &
+{% else %}
+mvn exec:java -Dexec.mainClass=distributed.Main -Dexec.args="client {{ node.address }} 1234 {{ master_node.address }} 1234" | tee $HOME/output.log &
+{% endif %}
+cd ..
+
+sleep 60
+
+exit 0

@@ -1,5 +1,5 @@
 #!/usb/bin/env bash
 
-echo $(hostname) > output.txt
+mvn exec:java -Dexec.mainClass=distributed.Main -Dexec.args="server 1234" > output.log
 
 exit 0

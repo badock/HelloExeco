@@ -1,0 +1,17 @@
+[INFO] Scanning for projects...
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building hello.akka 1.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] >>> exec-maven-plugin:1.2.1:java (default-cli) > validate @ hello.akka >>>
+[INFO] 
+[INFO] <<< exec-maven-plugin:1.2.1:java (default-cli) < validate @ hello.akka <<<
+[INFO] 
+[INFO] --- exec-maven-plugin:1.2.1:java (default-cli) @ hello.akka ---
+Launching server
+[INFO] [11/21/2018 15:04:14.901] [distributed.Main.main()] [akka.remote.Remoting] Starting remoting
+[INFO] [11/21/2018 15:04:15.062] [distributed.Main.main()] [akka.remote.Remoting] Remoting started; listening on addresses :[akka.tcp://hello_akka@ecotype-28.nantes.grid5000.fr:1234]
+[INFO] [11/21/2018 15:04:15.064] [distributed.Main.main()] [akka.remote.Remoting] Remoting now listens on addresses: [akka.tcp://hello_akka@ecotype-28.nantes.grid5000.fr:1234]
+greeter1>> found new peer: Actor[akka.tcp://hello_akka@ecotype-3.nantes.grid5000.fr:1234/user/greeter2#1953720438]
+[WARN] [SECURITY][11/21/2018 15:04:15.497] [hello_akka-akka.remote.default-remote-dispatcher-6] [akka.serialization.Serialization(akka://hello_akka)] Using the default Java serializer for class [distributed.msg.Greeting] which is not recommended because of performance implications. Use another serializer or disable this warning using the setting 'akka.actor.warn-about-java-serializer-usage'
